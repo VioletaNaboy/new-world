@@ -7,21 +7,27 @@ import (
 )
 
 type GameStatus struct {
-	Location   string
-	Items      []string
-	IsBitten   bool
+	Location    string
+	Items       []string
+	IsBitten    bool
 	IsExhausted bool
 }
 
-func main() {
-	status := GameStatus{
-		Location:   "cave",
-		Items:      []string{"matches", "flashlight", "knife"},
-		IsBitten:   false,
-		IsExhausted: false,
-	}
+type Game struct {
+	Status  GameStatus
+	Scanner *bufio.Scanner
+}
 
-	scanner := bufio.NewScanner(os.Stdin)
+func main() {
+	game := Game{
+		Status: GameStatus{
+			Location:   "cave",
+			Items:      []string{"matches", "flashlight", "knife"},
+			IsBitten:   false,
+			IsExhausted: false,
+		},
+		Scanner: bufio.NewScanner(os.Stdin),
+	}
 
 	fmt.Println("Welcome to the game 'New World'.")
 	fmt.Println("Your character wakes up at the entrance of a cave. He only remembers his name - Steven.")
@@ -29,17 +35,17 @@ func main() {
 	fmt.Println("What will you do next?")
 
 	for {
-		switch status.Location {
+		switch game.Status.Location {
 		case "cave":
-			handleCave(&status, scanner)
+			game.handleCave()
 		case "forest":
-			handleForest(&status, scanner)
+			game.handleForest()
 		case "camp":
-			handleCamp(&status, scanner)
+			game.handleCamp()
 		case "tent":
-			handleTent(&status, scanner)
+			game.handleTent()
 		case "lake":
-			handleLake(&status, scanner)
+			game.handleLake()
 		default:
 			fmt.Println("Unknown location.")
 			return
@@ -47,91 +53,91 @@ func main() {
 	}
 }
 
-func handleCave(status *GameStatus, scanner *bufio.Scanner) {
+func (g *Game) handleCave() {
 	fmt.Println("1. Enter the cave")
 	fmt.Println("2. Follow the path to the forest")
 	fmt.Print("> ")
 
-	scanner.Scan()
-	choice := scanner.Text()
+	g.Scanner.Scan()
+	choice := g.Scanner.Text()
 
 	if choice == "1" {
-		status.Location = "cave"
+		g.Status.Location = "cave"
 		fmt.Println("It's too dark in the cave, you decide to exit.")
 	} else if choice == "2" {
-		status.Location = "forest"
+		g.Status.Location = "forest"
 	} else {
 		fmt.Println("Invalid choice, please try again.")
 	}
 }
 
-func handleForest(status *GameStatus, scanner *bufio.Scanner) {
+func (g *Game) handleForest() {
 	fmt.Println("You walk through the forest and encounter the body of a strange animal.")
 	fmt.Println("1. Examine the body")
 	fmt.Println("2. Continue walking")
 	fmt.Println("3. Look around for water")
 	fmt.Print("> ")
 
-	scanner.Scan()
-	choice := scanner.Text()
+	g.Scanner.Scan()
+	choice := g.Scanner.Text()
 
 	if choice == "1" {
 		fmt.Println("You find nothing of interest and decide to move on.")
-		status.Location = "camp"
+		g.Status.Location = "camp"
 	} else if choice == "2" {
-		status.Location = "camp"
+		g.Status.Location = "camp"
 	} else if choice == "3" {
-		status.Location = "lake"
+		g.Status.Location = "lake"
 	} else {
 		fmt.Println("Invalid choice, please try again.")
 	}
 }
 
-func handleCamp(status *GameStatus, scanner *bufio.Scanner) {
+func (g *Game) handleCamp() {
 	fmt.Println("You arrive at an abandoned camp. You are exhausted.")
 	fmt.Println("1. Rest in the nearest tent")
 	fmt.Println("2. Keep moving")
 	fmt.Println("3. Search for supplies")
 	fmt.Print("> ")
 
-	scanner.Scan()
-	choice := scanner.Text()
+	g.Scanner.Scan()
+	choice := g.Scanner.Text()
 
 	if choice == "1" {
-		status.Location = "tent"
-		status.IsExhausted = true
+		g.Status.Location = "tent"
+		g.Status.IsExhausted = true
 	} else if choice == "2" {
-		if status.IsExhausted {
+		if g.Status.IsExhausted {
 			fmt.Println("You are too exhausted and collapse unconscious. The game is over.")
 			return
 		}
-		status.Location = "forest"
+		g.Status.Location = "forest"
 	} else if choice == "3" {
 		fmt.Println("You find some canned food and a bottle of water. You feel a bit more energized.")
-		status.IsExhausted = false
+		g.Status.IsExhausted = false
 	} else {
 		fmt.Println("Invalid choice, please try again.")
 	}
 }
 
-func handleTent(status *GameStatus, scanner *bufio.Scanner) {
+func (g *Game) handleTent() {
 	fmt.Println("In the nearest tent, you find a safe with a two-number combination lock.")
 	fmt.Println("1. Try to open the safe")
 	fmt.Println("2. Leave the tent")
 	fmt.Print("> ")
 
-	scanner.Scan()
-	choice := scanner.Text()
+	g.Scanner.Scan()
+	choice := g.Scanner.Text()
 
 	if choice == "1" {
 		fmt.Println("Enter the code (two numbers separated by a space):")
 		fmt.Print("> ")
 
-		scanner.Scan()
-		code := scanner.Text()
+		g.Scanner.Scan()
+		code := g.Scanner.Text()
 		if code == "17 17" {
 			fmt.Println("The safe opens, but a large insect crawls out and bites your hand. You pass out.")
-			status.IsBitten = true
+			g.Status.IsBitten = true
 			fmt.Println("The game is over.")
 			return
 		} else {
@@ -146,25 +152,25 @@ func handleTent(status *GameStatus, scanner *bufio.Scanner) {
 	}
 }
 
-func handleLake(status *GameStatus, scanner *bufio.Scanner) {
+func (g *Game) handleLake() {
 	fmt.Println("You find a small lake with clear water.")
 	fmt.Println("1. Drink the water")
 	fmt.Println("2. Rest by the lake")
 	fmt.Println("3. Go back to the forest")
 	fmt.Print("> ")
 
-	scanner.Scan()
-	choice := scanner.Text()
+	g.Scanner.Scan()
+	choice := g.Scanner.Text()
 
 	if choice == "1" {
 		fmt.Println("The water is refreshing, and you feel reinvigorated.")
-		status.IsExhausted = false
-		status.Location = "forest"
+		g.Status.IsExhausted = false
+		g.Status.Location = "forest"
 	} else if choice == "2" {
 		fmt.Println("You rest by the lake and feel your strength returning.")
-		status.IsExhausted = false
+		g.Status.IsExhausted = false
 	} else if choice == "3" {
-		status.Location = "forest"
+		g.Status.Location = "forest"
 	} else {
 		fmt.Println("Invalid choice, please try again.")
 	}
